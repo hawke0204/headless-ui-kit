@@ -3,14 +3,13 @@
 	"version": "0.0.1",
 	"main": "dist/index.js",
 	"bin": {
-		"headless-ui": "./dist/cli.js"
+		"headless-ui-kit": "./dist/cli.js"
 	},
 	"scripts": {
-		"dev": "tsup src/cli.ts --format cjs --watch",
+		"dev": "vite-node src/cli.ts add Button --path ./test-components",
 		"build": "tsup src/cli.ts --format cjs --dts",
 		"check": "biome check .",
-		"check:fix": "biome check --write .",
-		"test:add": "node dist/cli.js add Button --path ./test-components"
+		"check:fix": "biome check --write ."
 	},
 	"files": ["dist", "README.md"],
 	"devDependencies": {
@@ -19,11 +18,12 @@
 		"@types/node": "catalog:",
 		"@types/yargs": "^17.0.33",
 		"tsup": "^8.4.0",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"vite-node": "^3.0.8"
 	},
 	"dependencies": {
 		"axios": "^1.8.3",
-		"chalk": "^4.1.2",
+		"chalk": "^5.4.1",
 		"extract-zip": "^2.0.1",
 		"fs-extra": "^11.3.0",
 		"yargs": "^17.7.2"
