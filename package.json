@@ -1,0 +1,23 @@
+{
+	"name": "headless-ui-kit",
+	"version": "0.0.1",
+	"scripts": {
+		"cli:dev": "pnpm --filter cli dev",
+		"cli:build": "pnpm --filter cli build",
+		"cli:check": "pnpm --filter cli check",
+		"cli:check:fix": "pnpm --filter cli check:fix",
+		"prepare": "husky install",
+		"pre-push": "lint-staged"
+	},
+	"license": "MIT",
+	"packageManager": "pnpm@10.6.2",
+	"devDependencies": {
+		"@biomejs/biome": "catalog:",
+		"husky": "^9.1.7",
+		"lint-staged": "^15.5.0"
+	},
+	"workspaces": ["packages/*"],
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx,json}": ["pnpm cli:check:fix"]
+	}
+}
