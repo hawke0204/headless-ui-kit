@@ -4,10 +4,7 @@ packages:
   - 'packages/react/*'
 
 catalog:
-  '@biomejs/biome': ^1.9.4
+  react: ^19.0.0
+  typescript: ^5.8.2
   '@types/node': ^20.17.24
   '@types/react': ^19.0.0
-  typescript: ^5.8.2
-  vitest: ^3.0.9
-  react: ^19.0.0
-  "@testing-library/react": ^16.2.0

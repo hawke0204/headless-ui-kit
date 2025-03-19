@@ -6,7 +6,6 @@
 		"react": "catalog:"
 	},
 	"devDependencies": {
-		"@types/react": "catalog:",
 		"uuid": "^11.1.0"
 	}
 }
