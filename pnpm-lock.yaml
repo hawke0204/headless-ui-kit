@@ -20,6 +20,9 @@ importers:
       '@biomejs/biome':
         specifier: ^1.9.4
         version: 1.9.4
+      '@storybook/addon-actions':
+        specifier: ^8.6.7
+        version: 8.6.7(storybook@8.6.7(prettier@3.5.3))
       '@storybook/addon-essentials':
         specifier: ^8.6.7
         version: 8.6.7(@types/react@19.0.11)(storybook@8.6.7(prettier@3.5.3))
