@@ -1,5 +1,5 @@
-import React from 'react';
 import { Primitive } from 'radix-ui/internal';
+import React from 'react';
 
 interface ContextValueType {
 	otp: string[];
