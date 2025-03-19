@@ -9,7 +9,8 @@
 		"prepare": "husky install",
 		"pre-push": "lint-staged",
 		"storybook": "BROWSER=none storybook dev -p 9009",
-		"build:storybook": "storybook build"
+		"build:storybook": "storybook build",
+		"test": "vitest"
 	},
 	"license": "MIT",
 	"packageManager": "pnpm@10.6.2",
@@ -25,9 +26,12 @@
 		"@storybook/react": "^8.6.7",
 		"@storybook/react-webpack5": "^8.6.7",
 		"@storybook/theming": "^8.6.7",
+		"@testing-library/jest-dom": "^6.6.3",
+		"@testing-library/react": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"husky": "^9.1.7",
+		"jsdom": "^26.0.0",
 		"lint-staged": "^15.5.0",
 		"vitest": "catalog:"
 	},

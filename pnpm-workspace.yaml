@@ -10,3 +10,4 @@ catalog:
   typescript: ^5.8.2
   vitest: ^3.0.9
   react: ^19.0.0
+  "@testing-library/react": ^16.2.0

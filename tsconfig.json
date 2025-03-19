@@ -1,5 +1,5 @@
 {
-  "include": ["packages", "types"],
+  "include": ["packages", "types", "scripts"],
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
@@ -32,7 +32,7 @@
     "strictPropertyInitialization": true,
     "stripInternal": true,
     "target": "ES2022",
-    "types": ["vitest/globals"],
+    "types": ["node", "vitest/globals", "@testing-library/react"],
     "typeRoots": ["./node_modules/@types", "./types", "./node_modules"],
     "paths": {
       "@headless-ui/otp": ["./packages/react/otp/src"]
