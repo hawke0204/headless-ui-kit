@@ -13,12 +13,9 @@
 	},
 	"files": ["dist", "README.md"],
 	"devDependencies": {
-		"@biomejs/biome": "catalog:",
 		"@types/fs-extra": "^11.0.4",
-		"@types/node": "catalog:",
 		"@types/yargs": "^17.0.33",
 		"tsup": "^8.4.0",
-		"typescript": "catalog:",
 		"vite-node": "^3.0.8"
 	},
 	"dependencies": {

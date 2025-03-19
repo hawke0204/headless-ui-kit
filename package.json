@@ -2,21 +2,16 @@
 	"name": "headless-ui-kit",
 	"version": "0.0.1",
 	"scripts": {
-		"cli:dev": "pnpm --filter cli dev",
-		"cli:build": "pnpm --filter cli build",
-		"cli:check": "pnpm --filter cli check",
-		"cli:check:fix": "pnpm --filter cli check:fix",
-		"prepare": "husky install",
-		"pre-push": "lint-staged",
+		"check:cli": "pnpm biome check --write packages/cli",
+		"check:react": "pnpm biome check --write packages/react",
 		"storybook": "BROWSER=none storybook dev -p 9009",
 		"build:storybook": "storybook build",
-		"test": "vitest"
+		"test": "vitest",
+		"prepare": "husky install",
+		"pre-push": "lint-staged"
 	},
 	"license": "MIT",
 	"packageManager": "pnpm@10.6.2",
-	"dependencies": {
-		"react": "catalog:"
-	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
 		"@storybook/addon-essentials": "^8.6.7",
@@ -28,16 +23,16 @@
 		"@storybook/theming": "^8.6.7",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/react": "^16.2.0",
-		"@types/node": "catalog:",
-		"@types/react": "catalog:",
+		"@types/node": "^20.17.24",
+		"@types/react": "^19.0.0",
 		"husky": "^9.1.7",
 		"jsdom": "^26.0.0",
 		"lint-staged": "^15.5.0",
 		"vitest": "^3.0.9",
-		"typescript": "catalog:"
+		"typescript": "^5.8.2"
 	},
 	"workspaces": ["packages/*"],
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,json}": ["pnpm cli:check:fix"]
+		"*.{js,jsx,ts,tsx,json}": ["pnpm check:cli", "pnpm check:react"]
 	}
 }
