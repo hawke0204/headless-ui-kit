@@ -1,0 +1,18 @@
+/** input 기본 스타일 초기화 */
+input {
+  all: unset;
+}
+
+.root {
+  display: flex;
+  gap: 1rem;
+}
+
+.item {
+  width: 3rem;
+  height: 3rem;
+  text-align: center;
+  font-size: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+}

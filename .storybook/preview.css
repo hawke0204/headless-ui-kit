@@ -1,0 +1,21 @@
+* {
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+[hidden] {
+  display: none;
+}
+
+:root {
+  --color-white: #fff;
+  --color-gray100: #ccc;
+  --color-gray300: #aaa;
+  --color-black: #111;
+  --color-red: crimson;
+  --color-green: green;
+}
