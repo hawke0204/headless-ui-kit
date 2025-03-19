@@ -1,5 +1,7 @@
 packages:
-  - 'packages/*'
+  - 'packages/cli'
+  - 'packages/core'
+  - 'packages/react/*'
 
 catalog:
   '@biomejs/biome': ^1.9.4
