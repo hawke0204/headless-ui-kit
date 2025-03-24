@@ -32,13 +32,8 @@
 		"typescript": "^5.8.2",
 		"vitest": "^3.0.9"
 	},
-	"workspaces": [
-		"packages/*"
-	],
+	"workspaces": ["packages/cli", "packages/react/*"],
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,json}": [
-			"pnpm check:cli",
-			"pnpm check:react"
-		]
+		"*.{js,jsx,ts,tsx,json}": ["pnpm check:cli", "pnpm check:react"]
 	}
 }

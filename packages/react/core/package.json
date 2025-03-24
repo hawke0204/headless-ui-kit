@@ -1,0 +1,8 @@
+{
+	"name": "@headless-ui/core",
+	"version": "0.0.1",
+	"dependencies": {
+		"radix-ui": "catalog:",
+		"react": "catalog:"
+	}
+}

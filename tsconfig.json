@@ -35,7 +35,8 @@
     "types": ["node", "vitest/globals", "@testing-library/react"],
     "typeRoots": ["./node_modules/@types", "./types", "./node_modules"],
     "paths": {
-      "@headless-ui/otp": ["./packages/react/otp/src"]
+      "@headless-ui/otp": ["./packages/react/otp/src"],
+      "@headless-ui/core": ["./packages/react/core/src"]
     }
   }
 }
