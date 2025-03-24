@@ -3,6 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import { OTP } from './otp';
 
+const hashOtp = async (text: string): Promise<string> => {
+	const msgBuffer = new TextEncoder().encode(text);
+	const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+};
+
 // OTP Component Tests
 describe('OTP 컴포넌트', () => {
 	const TestOTP = ({
@@ -39,11 +46,11 @@ describe('OTP 컴포넌트', () => {
 			const firstInput = screen.getByTestId('otp-input-0');
 
 			fireEvent.keyDown(firstInput, { key: '1' });
-			expect(firstInput).toHaveValue('1');
+			expect(firstInput).toHaveValue('*');
 		});
 
 		// Should trigger onComplete when all digits are filled
-		it('모든 자리가 입력되면 onComplete가 호출되어야 함', () => {
+		it('모든 자리가 입력되면 onComplete가 호출되어야 함', async () => {
 			const onComplete = vi.fn();
 			render(<TestOTP onComplete={onComplete} />);
 
@@ -52,9 +59,10 @@ describe('OTP 컴포넌트', () => {
 				fireEvent.keyDown(input, { key: String(index + 1) });
 			});
 
+			const expectedHash = await hashOtp('1234');
 			vi.runAllTimers();
 			expect(onComplete).toHaveBeenCalledWith({
-				digits: '1234',
+				digits: expectedHash,
 				reset: expect.any(Function),
 			});
 		});

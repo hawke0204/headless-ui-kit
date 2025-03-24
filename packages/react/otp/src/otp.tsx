@@ -7,7 +7,13 @@ interface ContextValueType {
 	handleKeyDown: (event: KeyboardEvent) => void;
 }
 
-const OTPContext = React.createContext<ContextValueType | undefined>(undefined);
+const initialContextValue: ContextValueType = {
+	otp: [],
+	activeOTPIndex: 0,
+	handleKeyDown: () => {},
+};
+
+const OTPContext = React.createContext<ContextValueType>(initialContextValue);
 
 const useOTPContext = (consumerName: string) => {
 	const context = React.useContext(OTPContext);
@@ -25,6 +31,11 @@ const OTP_ROOT_NAME = 'OTPRoot';
 
 interface OTPRootProps
 	extends Omit<React.HTMLAttributes<HTMLFormElement>, 'children'> {
+	/**
+	 * Callback function that is called when all OTP digits are filled
+	 * @param props.digits - SHA-256 hashed value of the entered OTP digits
+	 * @param props.reset - Function to reset the OTP input state
+	 */
 	onComplete?: (props: {
 		digits: string;
 		reset: () => void;
@@ -38,6 +49,13 @@ const isDigit = (event: KeyboardEvent) => /^\d$/.test(event.key);
 
 const isBackspace = (event: KeyboardEvent) => event.key === 'Backspace';
 
+const hashOtp = async (text: string): Promise<string> => {
+	const msgBuffer = new TextEncoder().encode(text);
+	const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+};
+
 const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 	(props, forwardedRef) => {
 		const { onComplete, children, ...restProps } = props;
@@ -47,7 +65,7 @@ const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 			React.useState<number>(DEFAULT_INDEX);
 
 		const handleKeyDown = React.useCallback(
-			(event: KeyboardEvent) => {
+			async (event: KeyboardEvent) => {
 				switch (true) {
 					case isDigit(event): {
 						const newOTPIndex = Math.min(activeOTPIndex, otpLength - 1);
@@ -64,15 +82,15 @@ const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 						}
 
 						if (newOtp.every((digit) => digit !== '')) {
-							setTimeout(() => {
-								onComplete?.({
-									digits: newOtp.join(''),
-									reset: () => {
-										setOTP(Array(otpLength).fill(''));
-										setActiveOTPIndex(DEFAULT_INDEX);
-									},
-								});
-							}, 100);
+							const digits = newOtp.join('');
+							const hashedDigits = await hashOtp(digits);
+							onComplete?.({
+								digits: hashedDigits,
+								reset: () => {
+									setOTP(Array(otpLength).fill(''));
+									setActiveOTPIndex(DEFAULT_INDEX);
+								},
+							});
 						}
 						break;
 					}
@@ -101,6 +119,7 @@ const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 				<Primitive.form
 					tabIndex={0}
 					name="form"
+					autoComplete="off"
 					ref={forwardedRef}
 					{...restProps}
 				>
@@ -129,6 +148,11 @@ const OTPItem = React.forwardRef<HTMLInputElement, OTPItemProps>((props, _) => {
 		[index, activeOTPIndex],
 	);
 
+	const maskedValue = React.useMemo(
+		() => (currentValue ? '*' : ''),
+		[currentValue],
+	);
+
 	React.useEffect(() => {
 		if (isActive && inputRef?.current) {
 			inputRef.current.focus();
@@ -142,30 +166,36 @@ const OTPItem = React.forwardRef<HTMLInputElement, OTPItemProps>((props, _) => {
 		};
 	}, [isActive]);
 
-	React.useEffect(() => {
-		if (inputRef?.current) {
-			inputRef.current.addEventListener('keydown', handleKeyDown);
-		}
-		return () => {
-			if (inputRef?.current) {
-				inputRef.current.removeEventListener('keydown', handleKeyDown);
-			}
-		};
-	}, [handleKeyDown]);
-
 	return (
 		<Primitive.input
 			type="text"
 			name="number"
 			tabIndex={0}
 			inputMode="numeric"
-			autoComplete="off"
+			autoComplete="new-password"
+			autoCorrect="off"
+			spellCheck="false"
+			maxLength={1}
+			pattern="\d*"
 			readOnly={!isActive}
 			ref={inputRef}
 			onChange={(event) => {
 				event.preventDefault();
 			}}
-			value={currentValue}
+			onCopy={(event) => {
+				event.preventDefault();
+			}}
+			onPaste={(event) => {
+				event.preventDefault();
+			}}
+			onCut={(event) => {
+				event.preventDefault();
+			}}
+			onKeyDown={(event) => {
+				handleKeyDown(event as unknown as KeyboardEvent);
+			}}
+			value={maskedValue}
+			aria-label={`OTP digit ${index + 1}`}
 			{...restProps}
 		/>
 	);
