@@ -1,9 +1,10 @@
 {
-	"name": "otp",
+	"name": "@headless-ui/otp",
 	"version": "0.0.1",
 	"dependencies": {
 		"radix-ui": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"@headless-ui/core": "workspace:*"
 	},
 	"devDependencies": {
 		"uuid": "^11.1.0"

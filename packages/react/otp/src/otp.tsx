@@ -1,3 +1,4 @@
+import { createContext } from '@headless-ui/core';
 import { Primitive } from 'radix-ui/internal';
 import React, { Children } from 'react';
 
@@ -7,27 +8,18 @@ interface ContextValueType {
 	handleKeyDown: (event: KeyboardEvent) => void;
 }
 
-const initialContextValue: ContextValueType = {
+const defaultContextValue: ContextValueType = {
 	otp: [],
 	activeOTPIndex: 0,
 	handleKeyDown: () => {},
 };
 
-const OTPContext = React.createContext<ContextValueType>(initialContextValue);
-
-const useOTPContext = (consumerName: string) => {
-	const context = React.useContext(OTPContext);
-
-	if (context) {
-		return context;
-	}
-
-	throw new Error(
-		`\`${consumerName}\` must be used within \`${OTP_ROOT_NAME}\``,
-	);
-};
-
 const OTP_ROOT_NAME = 'OTPRoot';
+
+const [OTPProvider, useOTPContext] = createContext<ContextValueType>(
+	OTP_ROOT_NAME,
+	defaultContextValue,
+);
 
 interface OTPRootProps
 	extends Omit<React.HTMLAttributes<HTMLFormElement>, 'children'> {
@@ -109,12 +101,10 @@ const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 		);
 
 		return (
-			<OTPContext.Provider
-				value={{
-					otp,
-					activeOTPIndex,
-					handleKeyDown,
-				}}
+			<OTPProvider
+				otp={otp}
+				activeOTPIndex={activeOTPIndex}
+				handleKeyDown={handleKeyDown}
 			>
 				<Primitive.form
 					tabIndex={0}
@@ -125,7 +115,7 @@ const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 				>
 					{children}
 				</Primitive.form>
-			</OTPContext.Provider>
+			</OTPProvider>
 		);
 	},
 );
