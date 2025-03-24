@@ -1,20 +1,24 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
-import { OTP } from './otp';
+import { OTP } from './otp.deprecated';
 
 // OTP Component Tests
 describe('OTP 컴포넌트', () => {
 	const TestOTP = ({
+		otpLength = 6,
 		onComplete,
-	}: {
-		onComplete?: (props: { digits: string; reset: () => void }) => void;
-	}) => (
-		<OTP.Root className="root" onComplete={onComplete}>
-			<OTP.Item index={0} data-testid="otp-input-0" />
-			<OTP.Item index={1} data-testid="otp-input-1" />
-			<OTP.Item index={2} data-testid="otp-input-2" />
-			<OTP.Item index={3} data-testid="otp-input-3" />
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	}: { otpLength?: number; onComplete?: any }) => (
+		<OTP.Root otpLength={otpLength} onComplete={onComplete}>
+			{({ ref, value, otpItemIndex }) => (
+				<OTP.Item
+					ref={ref}
+					value={value}
+					otpItemIndex={otpItemIndex}
+					data-testid={`otp-input-${otpItemIndex}`}
+				/>
+			)}
 		</OTP.Root>
 	);
 
@@ -22,12 +26,18 @@ describe('OTP 컴포넌트', () => {
 		vi.useFakeTimers();
 	});
 
-	// Rendering Tests
-	describe('렌더링', () => {
-		// Should render correct number of input fields (4)
-		it('지정된 개수(4개)의 입력 필드가 렌더링되어야 함', () => {
-			render(<TestOTP />);
+	// Length Tests
+	describe('OTP 개수', () => {
+		// Should render correct number of inputs based on otpLength prop
+		it('otpLength prop에 따라 올바른 개수의 입력 필드가 렌더링되어야 함', () => {
+			render(<TestOTP otpLength={4} />);
 			expect(screen.getAllByTestId(/otp-input-/)).toHaveLength(4);
+		});
+
+		// Should use default length of 6 when otpLength is not provided
+		it('otpLength가 제공되지 않으면 기본값 6을 사용해야 함', () => {
+			render(<TestOTP />);
+			expect(screen.getAllByTestId(/otp-input-/)).toHaveLength(6);
 		});
 	});
 
@@ -45,16 +55,16 @@ describe('OTP 컴포넌트', () => {
 		// Should trigger onComplete when all digits are filled
 		it('모든 자리가 입력되면 onComplete가 호출되어야 함', () => {
 			const onComplete = vi.fn();
-			render(<TestOTP onComplete={onComplete} />);
+			render(<TestOTP otpLength={3} onComplete={onComplete} />);
 
 			const inputs = screen.getAllByTestId(/otp-input-/);
-			inputs.forEach((input, index) => {
-				fireEvent.keyDown(input, { key: String(index + 1) });
-			});
+			fireEvent.keyDown(inputs[0], { key: '1' });
+			fireEvent.keyDown(inputs[1], { key: '2' });
+			fireEvent.keyDown(inputs[2], { key: '3' });
 
 			vi.runAllTimers();
 			expect(onComplete).toHaveBeenCalledWith({
-				digits: '1234',
+				digits: '123',
 				reset: expect.any(Function),
 			});
 		});
@@ -62,10 +72,14 @@ describe('OTP 컴포넌트', () => {
 		// Should handle backspace correctly
 		it('백스페이스가 올바르게 처리되어야 함', () => {
 			render(<TestOTP />);
-			const firstInput = screen.getByTestId('otp-input-0');
+
+			const inputs = screen.getAllByTestId(/otp-input-/);
+
+			const firstInput = inputs[0];
+			const secondInput = inputs[1];
 
 			fireEvent.keyDown(firstInput, { key: '1' });
-			fireEvent.keyDown(firstInput, { key: 'Backspace' });
+			fireEvent.keyDown(secondInput, { key: 'Backspace' });
 			fireEvent.keyDown(firstInput, { key: 'Backspace' });
 			expect(firstInput).toHaveValue('');
 		});
@@ -87,9 +101,9 @@ describe('OTP 컴포넌트', () => {
 		it('백스페이스 입력 시 이전 입력 필드로 포커스가 이동해야 함', () => {
 			render(<TestOTP />);
 			const firstInput = screen.getByTestId('otp-input-0');
+			const secondInput = screen.getByTestId('otp-input-1');
 
 			fireEvent.keyDown(firstInput, { key: '1' });
-			const secondInput = screen.getByTestId('otp-input-1');
 			fireEvent.keyDown(secondInput, { key: 'Backspace' });
 			expect(document.activeElement).toBe(firstInput);
 		});

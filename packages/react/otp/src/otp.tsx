@@ -1,9 +1,10 @@
 import { Primitive } from 'radix-ui/internal';
-import React from 'react';
+import React, { Children } from 'react';
 
 interface ContextValueType {
 	otp: string[];
-	activeOTPItemIndex: number;
+	activeOTPIndex: number;
+	handleKeyDown: (event: KeyboardEvent) => void;
 }
 
 const OTPContext = React.createContext<ContextValueType | undefined>(undefined);
@@ -24,19 +25,14 @@ const OTP_ROOT_NAME = 'OTPRoot';
 
 interface OTPRootProps
 	extends Omit<React.HTMLAttributes<HTMLFormElement>, 'children'> {
-	otpLength?: number;
 	onComplete?: (props: {
 		digits: string;
 		reset: () => void;
 	}) => void;
-	children: (props: {
-		ref: React.RefObject<HTMLInputElement>;
-		value: string;
-		otpItemIndex: number;
-	}) => React.ReactNode;
+	children: React.ReactNode;
 }
 
-const INITIAL_ACTIVE_OTP_INDEX = 0;
+const DEFAULT_INDEX = 0;
 
 const isDigit = (event: KeyboardEvent) => /^\d$/.test(event.key);
 
@@ -44,21 +40,17 @@ const isBackspace = (event: KeyboardEvent) => event.key === 'Backspace';
 
 const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 	(props, forwardedRef) => {
-		const { otpLength = 6, onComplete, children, ...restProps } = props;
-
+		const { onComplete, children, ...restProps } = props;
+		const otpLength = Children.count(children);
 		const [otp, setOTP] = React.useState<string[]>(Array(otpLength).fill(''));
-		const [activeOTPItemIndex, setActiveOTPItemIndex] = React.useState<number>(
-			INITIAL_ACTIVE_OTP_INDEX,
-		);
-		const [itemRefs, setItemRefs] = React.useState<
-			React.RefObject<HTMLInputElement>[]
-		>([]);
+		const [activeOTPIndex, setActiveOTPIndex] =
+			React.useState<number>(DEFAULT_INDEX);
 
 		const handleKeyDown = React.useCallback(
 			(event: KeyboardEvent) => {
 				switch (true) {
 					case isDigit(event): {
-						const newOTPIndex = Math.min(activeOTPItemIndex, otpLength - 1);
+						const newOTPIndex = Math.min(activeOTPIndex, otpLength - 1);
 						if (otp[newOTPIndex] !== '') {
 							return;
 						}
@@ -67,10 +59,8 @@ const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 						newOtp[newOTPIndex] = event.key;
 						setOTP(newOtp);
 
-						if (activeOTPItemIndex < otpLength - 1) {
-							setActiveOTPItemIndex(
-								(prevActiveOTPIndex) => prevActiveOTPIndex + 1,
-							);
+						if (activeOTPIndex < otpLength - 1) {
+							setActiveOTPIndex((prevActiveOTPIndex) => prevActiveOTPIndex + 1);
 						}
 
 						if (newOtp.every((digit) => digit !== '')) {
@@ -79,53 +69,33 @@ const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 									digits: newOtp.join(''),
 									reset: () => {
 										setOTP(Array(otpLength).fill(''));
-										setActiveOTPItemIndex(INITIAL_ACTIVE_OTP_INDEX);
+										setActiveOTPIndex(DEFAULT_INDEX);
 									},
 								});
 							}, 100);
 						}
 						break;
 					}
-
 					case isBackspace(event): {
 						const newOtp = [...otp];
-						newOtp[activeOTPItemIndex] = '';
+						newOtp[activeOTPIndex] = '';
 						setOTP(newOtp);
-						setActiveOTPItemIndex((prevActiveOTPIndex) =>
-							Math.max(prevActiveOTPIndex - 1, INITIAL_ACTIVE_OTP_INDEX),
+						setActiveOTPIndex((prevActiveOTPIndex) =>
+							Math.max(prevActiveOTPIndex - 1, DEFAULT_INDEX),
 						);
 						break;
 					}
 				}
 			},
-			[activeOTPItemIndex, onComplete, otp, otpLength],
+			[activeOTPIndex, onComplete, otp, otpLength],
 		);
-
-		React.useEffect(() => {
-			setItemRefs((prevRefs) =>
-				Array(otp.length)
-					.fill(null)
-					.map((_, i) => prevRefs[i] || React.createRef()),
-			);
-		}, [otp.length]);
-
-		React.useEffect(() => {
-			for (const itemRef of itemRefs) {
-				itemRef.current?.addEventListener('keydown', handleKeyDown);
-			}
-
-			return () => {
-				for (const itemRef of itemRefs) {
-					itemRef.current?.removeEventListener('keydown', handleKeyDown);
-				}
-			};
-		}, [handleKeyDown, itemRefs]);
 
 		return (
 			<OTPContext.Provider
 				value={{
 					otp,
-					activeOTPItemIndex,
+					activeOTPIndex,
+					handleKeyDown,
 				}}
 			>
 				<Primitive.form
@@ -134,13 +104,7 @@ const OTPRoot = React.forwardRef<HTMLFormElement, OTPRootProps>(
 					ref={forwardedRef}
 					{...restProps}
 				>
-					{otp.map((digit, otpItemIndex) => {
-						return children({
-							ref: itemRefs[otpItemIndex],
-							value: digit,
-							otpItemIndex,
-						});
-					})}
+					{children}
 				</Primitive.form>
 			</OTPContext.Provider>
 		);
@@ -152,51 +116,60 @@ OTPRoot.displayName = OTP_ROOT_NAME;
 const OTP_ITEM_NAME = 'OTPItem';
 
 interface OTPItemProps extends React.HTMLAttributes<HTMLInputElement> {
-	value: string;
-	otpItemIndex: number;
+	index: number;
 }
 
-const OTPItem = React.forwardRef<HTMLInputElement, OTPItemProps>(
-	(props, forwardedRef) => {
-		const { otpItemIndex, ...restProps } = props;
+const OTPItem = React.forwardRef<HTMLInputElement, OTPItemProps>((props, _) => {
+	const { index, ...restProps } = props;
+	const inputRef = React.useRef<HTMLInputElement>(null);
+	const { otp, activeOTPIndex, handleKeyDown } = useOTPContext(OTP_ITEM_NAME);
+	const currentValue = React.useMemo(() => otp[index], [otp, index]);
+	const isActive = React.useMemo(
+		() => index === activeOTPIndex,
+		[index, activeOTPIndex],
+	);
 
-		const { activeOTPItemIndex } = useOTPContext(OTP_ITEM_NAME);
+	React.useEffect(() => {
+		if (isActive && inputRef?.current) {
+			inputRef.current.focus();
+			inputRef.current.click();
+		}
 
-		React.useEffect(() => {
-			const inputRef =
-				forwardedRef && 'current' in forwardedRef ? forwardedRef : null;
-
-			const isActive = otpItemIndex === activeOTPItemIndex;
-
-			if (isActive && inputRef?.current) {
-				inputRef.current.focus();
-				inputRef.current.click();
+		return () => {
+			if (inputRef?.current) {
+				inputRef.current.blur();
 			}
+		};
+	}, [isActive]);
 
-			return () => {
-				if (inputRef?.current) {
-					inputRef.current.blur();
-				}
-			};
-		}, [activeOTPItemIndex, otpItemIndex, forwardedRef]);
+	React.useEffect(() => {
+		if (inputRef?.current) {
+			inputRef.current.addEventListener('keydown', handleKeyDown);
+		}
+		return () => {
+			if (inputRef?.current) {
+				inputRef.current.removeEventListener('keydown', handleKeyDown);
+			}
+		};
+	}, [handleKeyDown]);
 
-		return (
-			<Primitive.input
-				type="text"
-				name="password"
-				tabIndex={0}
-				inputMode="numeric"
-				autoComplete="off"
-				readOnly={otpItemIndex !== activeOTPItemIndex}
-				ref={forwardedRef}
-				{...restProps}
-				onChange={(event) => {
-					event.preventDefault();
-				}}
-			/>
-		);
-	},
-);
+	return (
+		<Primitive.input
+			type="text"
+			name="number"
+			tabIndex={0}
+			inputMode="numeric"
+			autoComplete="off"
+			readOnly={!isActive}
+			ref={inputRef}
+			onChange={(event) => {
+				event.preventDefault();
+			}}
+			value={currentValue}
+			{...restProps}
+		/>
+	);
+});
 
 OTPItem.displayName = OTP_ITEM_NAME;
 

@@ -4,40 +4,55 @@ import { v4 as uuid } from 'uuid';
 import { OTP } from '@headless-ui/otp';
 import styles from './otp.stories.module.css';
 
+import { OTP as DeprecatedOTP } from './deprecated/otp.deprecated';
+
 const meta: Meta<typeof OTP.Root> = {
-  title: 'Components/OTP',
-  component: OTP.Root,
-  argTypes: {
-    otpLength: {
-      control: { type: 'number', min: 1, max: 6 },
-      description: 'Length of the OTP input',
-      defaultValue: 6
-    },
-    onComplete: {
-      action: 'onComplete',
-      description: 'Callback fired when all digits are entered'
-    }
-  }
+	title: 'Components/OTP',
+	component: OTP.Root,
+	argTypes: {
+		onComplete: {
+			action: 'onComplete',
+			description: 'Callback fired when all digits are entered',
+		},
+	},
 };
 
 export default meta;
 type Story = StoryObj<typeof OTP.Root>;
 
 export const Basic: Story = {
-  args: {
-    otpLength: 4,
-    onComplete: ({ digits, reset }) => {
+	args: {
+		onComplete: ({ digits, reset }) => {
 			action('onComplete')({ digits, reset });
-      reset();
-    }
-  },
-  render: ({ otpLength, onComplete }) => (
-    <OTP.Root
-      otpLength={otpLength}
-      className={styles.root}
-      onComplete={onComplete}
-    >
-      {(props) => <OTP.Item className={styles.item} key={uuid()} {...props} />}
-    </OTP.Root>
-  )
+			reset();
+		},
+	},
+	render: ({ onComplete }) => (
+		<OTP.Root className={styles.root} onComplete={onComplete}>
+			<OTP.Item index={0} className={styles.item} />
+			<OTP.Item index={1} className={styles.item} />
+			<OTP.Item index={2} className={styles.item} />
+			<OTP.Item index={3} className={styles.item} />
+		</OTP.Root>
+	),
+};
+
+export const PropsPattern: Story = {
+	args: {
+		onComplete: ({ digits, reset }) => {
+			action('onComplete')({ digits, reset });
+			reset();
+		},
+	},
+	render: ({ onComplete }) => (
+		<DeprecatedOTP.Root
+			otpLength={4}
+			className={styles.root}
+			onComplete={onComplete}
+		>
+			{(props) => (
+				<DeprecatedOTP.Item className={styles.item} key={uuid()} {...props} />
+			)}
+		</DeprecatedOTP.Root>
+	),
 };
