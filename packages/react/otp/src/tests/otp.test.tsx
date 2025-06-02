@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
-import { OTP } from './otp';
+
+import { OTP } from '../components/otp';
 
 const hashOtp = async (text: string): Promise<string> => {
 	const msgBuffer = new TextEncoder().encode(text);
