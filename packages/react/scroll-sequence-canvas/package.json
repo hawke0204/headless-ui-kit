@@ -1,0 +1,9 @@
+{
+	"name": "@headless-ui/scroll-sequence-canvas",
+	"version": "0.0.1",
+	"dependencies": {
+		"radix-ui": "catalog:",
+		"react": "catalog:",
+		"@headless-ui/core": "workspace:*"
+	}
+}
