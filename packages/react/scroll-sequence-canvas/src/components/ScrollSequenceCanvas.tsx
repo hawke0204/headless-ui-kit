@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { type ReactNode, useRef } from 'react';
 
 import { useImageCacheLoader } from '../hooks/useImageCacheLoader';
 import { useCanvasSize } from '../hooks/useCanvasSize';
@@ -11,6 +11,11 @@ interface ScrollSequenceCanvasProps {
 	onLoad?: () => void;
 	onLoadError?: (error: Error) => void;
 	onComplete?: () => void;
+	children: (props: {
+		canvasRef: React.RefObject<HTMLCanvasElement | null>;
+		isLoadedImage: boolean;
+		getCurrentImageIndex: () => number;
+	}) => ReactNode;
 }
 
 export const ScrollSequenceCanvas = (props: ScrollSequenceCanvasProps) => {
@@ -21,18 +26,19 @@ export const ScrollSequenceCanvas = (props: ScrollSequenceCanvasProps) => {
 		onLoadError,
 		scrollSensitivity,
 		onComplete,
+		children,
 	} = props;
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const canvasElement = canvasRef.current;
 
-	const { imageCache } = useImageCacheLoader({
+	const { imageCache, isLoaded: isLoadedImage } = useImageCacheLoader({
 		imageUrls,
 		onLoad,
 		onLoadError,
 	});
 
-	useScrollSequence({
+	const { getCurrentIndex: getCurrentImageIndex } = useScrollSequence({
 		imageCache,
 		canvasElement,
 		scrollSensitivity,
@@ -41,7 +47,7 @@ export const ScrollSequenceCanvas = (props: ScrollSequenceCanvasProps) => {
 
 	useCanvasSize({ canvasElement, size });
 
-	return <canvas ref={canvasRef} />;
+	return children({ canvasRef, isLoadedImage, getCurrentImageIndex });
 };
 
 ScrollSequenceCanvas.displayName = 'ScrollSequenceCanvas';
